@@ -7,7 +7,6 @@
 
 using namespace std;
 
-const size_t BLOCK_SIZE = 16;
 vector<unsigned char> stringToBytes(string str);
 void toMatrix(vector<unsigned char> bytes);
 void encryptFile(const string& fileName);
@@ -117,7 +116,7 @@ void toMatrix(const string& str, unsigned char matrix[4][4]) {
         bytes.push_back(static_cast<unsigned char>(c));
     }
 
-    size_t padding_length = BLOCK_SIZE - (bytes.size() % BLOCK_SIZE);
+    size_t padding_length = 16 - (bytes.size() % 16);
     //add bytes (padding) for string that is shorter than 16 bytes
     for (size_t i = 0; i < padding_length; i++)
     {
