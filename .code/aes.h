@@ -8,7 +8,6 @@ const unsigned char sBox[256];
 const unsigned char inverseSBox[256];
 const unsigned char rCon[MATRIX_SIZE][MATRIX_SIZE];
 
-
 const unsigned char cypherKey[MATRIX_SIZE][MATRIX_SIZE];
 
 //helper for mixColumn()
@@ -19,6 +18,11 @@ void byteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
 void shiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
 void mixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
 void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], int round, unsigned char key[11][MATRIX_SIZE][MATRIX_SIZE]);
+
+//decryption states
+void inverseByteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
+void inverseShiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
+void inverseMixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
 
 //key scheduling
 void getRoundKey(unsigned char *key, unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE]);

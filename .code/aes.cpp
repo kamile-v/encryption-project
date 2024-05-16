@@ -57,28 +57,10 @@ unsigned char shiftIndivMatrix[MATRIX_SIZE][MATRIX_SIZE] = {
 
 unsigned char inverseShiftIndivMatrix[MATRIX_SIZE][MATRIX_SIZE] = {
     {0x0e, 0x0b, 0x0d, 0x09},
-    {0x0, 0x02, 0x03, 0x01},
-    {0x01, 0x01, 0x02, 0x03},
-    {0x03, 0x01, 0x01, 0x02}
+    {0x09, 0x0e, 0x0b, 0x0d},
+    {0x0d, 0x09, 0x0e, 0x0b},
+    {0x0b, 0x0d, 0x09, 0x0e}
 };
-
-void shiftColumns(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
-
-    unsigned char result[MATRIX_SIZE][MATRIX_SIZE];
-
-    for (int i = 0; i < MATRIX_SIZE; ++i) {
-
-        for (int j = 0; j < MATRIX_SIZE; ++j) {
-            result[i][j] = 0x00;
-
-            for (int k = 0; k < MATRIX_SIZE; ++k) {
-                result[i][j] ^= galoisField(shiftIndivMatrix[i][k], matrix[k][j])
-            }
-        }
-    }
-
-    memcpy(matrix, result, MATRIX_SIZE * MATRIX_SIZE * sizeof(unsigned char));
-}
 
 unsigned char galoisField(unsigned char a, unsigned b) {
     unsigned char answer = 0;
@@ -99,6 +81,24 @@ unsigned char galoisField(unsigned char a, unsigned b) {
     return answer;
 }
 
+void shiftColumns(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
+
+    unsigned char result[MATRIX_SIZE][MATRIX_SIZE];
+
+    for (int i = 0; i < MATRIX_SIZE; ++i) {
+
+        for (int j = 0; j < MATRIX_SIZE; ++j) {
+            result[i][j] = 0x00;
+
+            for (int k = 0; k < MATRIX_SIZE; ++k) {
+                result[i][j] ^= galoisField(shiftIndivMatrix[i][k], matrix[k][j])
+            }
+        }
+    }
+
+    memcpy(matrix, result, MATRIX_SIZE * MATRIX_SIZE * sizeof(unsigned char));
+}
+
 void byteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
     for (int i = 0; i < MATRIX_SIZE; i++){
         for (int j = 0; j < MATRIX_SIZE; j++){
@@ -117,7 +117,7 @@ void shiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
         }
 
         for (int j = 0; j < MATRIX_SIZE; j++) {
-            if ( (j-i) > 0 || (j-i) == 0) {
+            if ( (j-i) >= 0) {
                 matrix[i][j-i] = rowInfo[j];
             } else {
                 matrix[i][j-i+MATRIX_SIZE] = rowInfo[j];
@@ -126,8 +126,26 @@ void shiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
     }
 }
 
-void mixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+void shiftCol(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
+    unsigned char result[MATRIX_SIZE][MATRIX_SIZE];
 
+    //matrix multiplication in GF(2^8);
+
+    for (int i = 0; i < MATRIX_SIZE; ++i) {
+
+        for (int j = 0 ; j < MATRIX_SIZE; ++j) {
+
+            result[i][j] = 0x00;
+
+            // dot product of the i-th row of __ and j-th row of matrix
+            for (int k = 0; k < MATRIX_SIZE; ++k) {
+                result[i][j] ^= galoisField(shiftIndivMatrix[i][k], matrix[k][j]); 
+
+            }
+        }
+    }
+
+    memcpy(matrix, result, MATRIX_SIZE * MATRIX_SIZE * sizeof(unsigned char));
 }
 
 void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], int round, unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE]){
@@ -160,6 +178,53 @@ void getRoundKey(unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE]){
         for (int j = 1; j < MATRIX_SIZE; j++){
             for (int i = 0; i < MATRIX_SIZE; i++){
                 keys[round][i][j] = keys[round-1][i][j] ^ keys[round][i][j-1];
+            }
+        }
+    }
+}
+
+void inverseByteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+    for (int i = 0; i < MATRIX_SIZE; i++){
+        for (int j = 0; j < MATRIX_SIZE; j++){
+            matrix[i][j] = inverseSBox[matrix[i][j]];
+        }
+    }
+}
+
+void inverseShiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+    unsigned char rowInfo [4];
+
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+
+        for (int k = 0; k < MATRIX_SIZE; k++) {
+            rowInfo[k] = matrix[i][k];
+        }
+
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            if ( (j-i) >= 0) {
+                matrix[i][j] = matrix[i][j-i];
+            } else {
+                matrix[i][j] = matrix[i][j-i+MATRIX_SIZE];
+            }
+        }
+    }
+}
+
+void inverseMixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+    unsigned char result[MATRIX_SIZE][MATRIX_SIZE];
+
+    //matrix multiplication in GF(2^8);
+
+    for (int i = 0; i < MATRIX_SIZE; ++i) {
+
+        for (int j = 0 ; j < MATRIX_SIZE; ++j) {
+
+            result[i][j] = 0x00;
+
+            // dot product of the i-th row of __ and j-th row of matrix
+            for (int k = 0; k < MATRIX_SIZE; ++k) {
+                result[i][j] ^= galoisField(inverseShiftIndivMatrix[i][k], matrix[k][j]); 
+
             }
         }
     }
