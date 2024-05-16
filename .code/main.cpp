@@ -32,3 +32,4 @@ void toMatrix(unsigned char matrix[4][4], vector<unsigned char>& bytes) {
         }
     }
 }
+
