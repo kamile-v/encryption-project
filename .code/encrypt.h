@@ -1,5 +1,5 @@
-#ifndef AES_H
-#define AES_H
+#ifndef ENCRYPT_H
+#define ENCRYPT_H
 
 const int MATRIX_SIZE = 4;
 
