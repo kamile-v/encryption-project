@@ -19,6 +19,6 @@ void mixColumn(unsigned char matrix[BLOCK_SIZE][BLOCK_SIZE]);
 void addRoundKey(unsigned char matrix[BLOCK_SIZE][BLOCK_SIZE], unsigned char key[BLOCK_SIZE][BLOCK_SIZE]);
 
 //key scheduling
-void getKey(unsigned char *key, int keylen, unsigned char[])
+void getKey(unsigned char *key, int keylen, unsigned char)
 
 #endif
