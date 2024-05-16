@@ -16,10 +16,9 @@ unsigned char galoisFieldMul(unsigned char c1, unsigned char c2);
 void byteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
 void shiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
 void mixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
-void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], unsigned char key[MATRIX_SIZE][MATRIX_SIZE]);
+void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], int round, unsigned char key[11][MATRIX_SIZE][MATRIX_SIZE]);
 
 //key scheduling
-void getKey(unsigned char *key, int keylen, unsigned char keys[][MATRIX_SIZE][MATRIX_SIZE]);
-void getKey128(unsigned char *key, unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE]);
+void getRoundKey(unsigned char *key, unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE]);
 
 #endif

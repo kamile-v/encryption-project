@@ -62,17 +62,21 @@ void mixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
 
 }
 
-void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], unsigned char key[MATRIX_SIZE][MATRIX_SIZE]){
-
+void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], int round, unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE]){
+    for (int i = 0; i < MATRIX_SIZE; i++){
+        for (int j = 0; j < MATRIX_SIZE; j++){
+            matrix[i][j] = matrix[i][j] ^ keys[round][i][j];
+        }
+    }
 }
 
-void getRoundKey(unsigned char keys[10][MATRIX_SIZE][MATRIX_SIZE]){
+void getRoundKey(unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE]){
     for (int i = 0; i < MATRIX_SIZE; i++){
         for (int j = 0; j < MATRIX_SIZE; j++){
             keys[0][i][j] = cypherKey[i][j];
         }
     }
-    for (int round = 1; round < 10; round++){
+    for (int round = 1; round < 11; round++){
         //get first column of each round
         unsigned char col[4]= {
             sBox[keys[round-1][1][3]] ^ rCon[round-1],
