@@ -1,5 +1,8 @@
 #include "aes.h"
 #include <string.h>
+#include <sstream>
+
+using namespace std;
 
 unsigned char sBox[256] = {
     0x63,   0x7c,   0x77,   0x7b,   0xf2,   0x6b,   0x6f,   0xc5,   0x30,   0x01,   0x67,   0x2b,   0xfe,   0xd7,   0xab,   0x76,
@@ -41,7 +44,7 @@ const unsigned char inverseSBox[256] = {
 
 unsigned char rCon[10] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,  0x40, 0x80, 0x1b, 0x36};
 
-extern unsigned char cypherKey[MATRIX_SIZE][MATRIX_SIZE] = {
+unsigned char cypherKey[MATRIX_SIZE][MATRIX_SIZE] = {
     {0x6d, 0x23, 0x69, 0x6e},
     {0x65, 0x74, 0x72, 0x4a},
     {0x61, 0x63, 0x6b, 0x61},
@@ -81,24 +84,6 @@ unsigned char galoisField(unsigned char a, unsigned b) {
     return answer;
 }
 
-void shiftColumns(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
-
-    unsigned char result[MATRIX_SIZE][MATRIX_SIZE];
-
-    for (int i = 0; i < MATRIX_SIZE; ++i) {
-
-        for (int j = 0; j < MATRIX_SIZE; ++j) {
-            result[i][j] = 0x00;
-
-            for (int k = 0; k < MATRIX_SIZE; ++k) {
-                result[i][j] ^= galoisField(shiftIndivMatrix[i][k], matrix[k][j])
-            }
-        }
-    }
-
-    memcpy(matrix, result, MATRIX_SIZE * MATRIX_SIZE * sizeof(unsigned char));
-}
-
 void byteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
     for (int i = 0; i < MATRIX_SIZE; i++){
         for (int j = 0; j < MATRIX_SIZE; j++){
@@ -126,7 +111,7 @@ void shiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
     }
 }
 
-void shiftCol(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
+void shiftColumns(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
     unsigned char result[MATRIX_SIZE][MATRIX_SIZE];
 
     //matrix multiplication in GF(2^8);
@@ -210,7 +195,7 @@ void inverseShiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
     }
 }
 
-void inverseMixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+void inverseShiftColumns(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
     unsigned char result[MATRIX_SIZE][MATRIX_SIZE];
 
     //matrix multiplication in GF(2^8);
@@ -228,4 +213,74 @@ void inverseMixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
             }
         }
     }
+}
+
+void encrypt(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+    int round = 0;
+    unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE];
+    getRoundKey(keys);
+
+    //initial round
+    addRoundKey(matrix, round, keys);
+
+    //1st - 9th round
+    for (round = 1; round < 10; round++){
+        byteSub(matrix);
+        shiftRow(matrix);
+        shiftColumns(matrix);
+        addRoundKey(matrix, round, keys);
+    }
+
+    //last round
+    byteSub(matrix);
+    shiftRow(matrix);
+    addRoundKey(matrix, round, keys);
+}
+
+string encryptedMessage(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
+    stringstream ss;
+
+    encrypt(matrix);
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            ss << matrix[i][j];
+        }
+    }
+
+    return ss.str();
+} 
+
+void decrypt(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+    int round = 0;
+    unsigned char keys[11][MATRIX_SIZE][MATRIX_SIZE];
+    getRoundKey(keys);
+
+    //inverse last round
+    addRoundKey(matrix, round, keys);
+    inverseShiftRow(matrix);
+    inverseByteSub(matrix);
+
+    //inverse 9th-1st round
+    for (round = 9; round >= 1; round++){
+        addRoundKey(matrix, round, keys);
+        inverseShiftColumns(matrix);
+        inverseShiftRow(matrix);
+        inverseByteSub(matrix);
+    }
+
+    //inverse 1st row
+    addRoundKey(matrix, round, keys);
+}
+
+string decryptedMessage(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
+    stringstream ss;
+
+    decrypt(matrix);
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            ss << matrix[i][j];
+        }
+    }
+
+    return ss.str();
 }
