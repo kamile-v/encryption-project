@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <sstream>
 #include <fstream>
 #include <string>
 
@@ -9,7 +8,7 @@
 using namespace std;
 
 vector<unsigned char> stringToBytes(string str);
-void toMatrix(vector<unsigned char> bytes);
+void toMatrix(const string& str, unsigned char matrix[4][4]);
 void encryptFile(const string& fileName);
 void decryptFile(const string& fileName);
 
@@ -74,7 +73,7 @@ void encryptFile(const string& fileName) {
             }
 
             toMatrix(toEncrypt, matrix);
-            result += decryptedMessage(matrix);
+            result += encryptedMessage(matrix);
         }
     }
 }
@@ -114,7 +113,7 @@ void decryptFile(const string& fileName) {
 void toMatrix(const string& str, unsigned char matrix[4][4]) {
     unsigned char bytes[16];
     for (int i = 0; i < str.length(); i++) {
-        bytes[0] = static_cast<unsigned char>(str.at(i));
+        bytes[i] = static_cast<unsigned char>(str.at(i));
     }
 
     size_t padding_length = 16 - (str.length() % 16);

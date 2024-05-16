@@ -26,6 +26,7 @@ void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], int round, unsi
 
 //encryption
 void encrypt(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
+string encryptedMessage(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
 
 //decryption states
 void inverseByteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]);
