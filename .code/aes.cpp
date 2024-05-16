@@ -18,21 +18,10 @@ unsigned char sBox[256] = {
     0xe1,   0xf8,   0x98,   0x11,   0x69,   0xd9,   0x8e,   0x94,   0x9b,   0x1e,   0x87,   0xe9,   0xce,   0x55,   0x28,   0xdf,
     0x8c,   0xa1,   0x89,   0x0d,   0xbf,   0xe6,   0x42,   0x68,   0x41,   0x99,   0x2d,   0x0f,   0xb0,   0x54,   0xbb,   0x16
 };
- 
-unsigned char rCon[10][BLOCK_SIZE] = {
-    { 0x01, 0x00, 0x00, 0x00},
-    { 0x02, 0x00, 0x00, 0x00},
-    { 0x04, 0x00, 0x00, 0x00},
-    { 0x08, 0x00, 0x00, 0x00},
-    { 0x10, 0x00, 0x00, 0x00},
-    { 0x20, 0x00, 0x00, 0x00},
-    { 0x40, 0x00, 0x00, 0x00},
-    { 0x80, 0x00, 0x00, 0x00},
-    { 0x1b, 0x00, 0x00, 0x00},
-    { 0x36, 0x00, 0x00, 0x00}
-};
 
-extern unsigned char cypherKey[BLOCK_SIZE][BLOCK_SIZE] = {
+unsigned char rCon[10] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,  0x40, 0x80, 0x1b, 0x36};
+
+extern unsigned char cypherKey[MATRIX_SIZE][MATRIX_SIZE] = {
     {0x6d, 0x23, 0x69, 0x6e},
     {0x65, 0x74, 0x72, 0x4a},
     {0x61, 0x63, 0x6b, 0x61},
@@ -42,29 +31,64 @@ extern unsigned char cypherKey[BLOCK_SIZE][BLOCK_SIZE] = {
 unsigned char galoisFieldMul(unsigned char c1, unsigned char c2){
 }
 
-void byteSub(unsigned char matrix[BLOCK_SIZE][BLOCK_SIZE]){
-    for (int i = 0; i < BLOCK_SIZE; i++){
-        for (int j = 0; j < BLOCK_SIZE; j++){
+void byteSub(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+    for (int i = 0; i < MATRIX_SIZE; i++){
+        for (int j = 0; j < MATRIX_SIZE; j++){
             matrix[i][j] = sBox[matrix[i][j]];
         }
     }
 }
 
-void shiftRow(unsigned char matrix[BLOCK_SIZE][BLOCK_SIZE]){
+void shiftRow(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
+    unsigned char rowInfo [4];
+
+    for (int i = 0; i < MATRIX_SIZE; i++) {
+
+        for (int k = 0; k < MATRIX_SIZE; k++) {
+            rowInfo[k] = matrix[i][k];
+        }
+
+        for (int j = 0; j < MATRIX_SIZE; j++) {
+            if ( (j-i) > 0 || (j-i) == 0) {
+                matrix[i][j-i] = rowInfo[j];
+            } else {
+                matrix[i][j-i+MATRIX_SIZE] = rowInfo[j];
+            }
+        }
+    }
+}
+
+void mixColumn(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE]){
 
 }
 
-void mixColumn(unsigned char matrix[BLOCK_SIZE][BLOCK_SIZE]){
+void addRoundKey(unsigned char matrix[MATRIX_SIZE][MATRIX_SIZE], unsigned char key[MATRIX_SIZE][MATRIX_SIZE]){
 
 }
 
-void addRoundKey(unsigned char matrix[BLOCK_SIZE][BLOCK_SIZE], unsigned char key[BLOCK_SIZE][BLOCK_SIZE]){
+void getRoundKey(unsigned char keys[10][MATRIX_SIZE][MATRIX_SIZE]){
+    for (int i = 0; i < MATRIX_SIZE; i++){
+        for (int j = 0; j < MATRIX_SIZE; j++){
+            keys[0][i][j] = cypherKey[i][j];
+        }
+    }
+    for (int round = 1; round < 10; round++){
+        //get first column of each round
+        unsigned char col[4]= {
+            sBox[keys[round-1][1][3]] ^ rCon[round-1],
+            sBox[keys[round-1][2][3]],
+            sBox[keys[round-1][3][3]],
+            sBox[keys[round-1][0][3]],
+        };
+        for (int row = 0; row < MATRIX_SIZE; row++){
+            keys[round][row][0] = keys[round-1][row][0] ^ col[row];
+        }
 
-}
-
-void getKey(unsigned char *key, int keylen, unsigned char[]){
-    //rotatate
-    //subbyte
-
-}
+        //get the remaining 3 column
+        for (int j = 1; j < MATRIX_SIZE; j++){
+            for (int i = 0; i < MATRIX_SIZE; i++){
+                keys[round][i][j] = keys[round-1][i][j] ^ keys[round][i][j-1];
+            }
+        }
+    }
 }
