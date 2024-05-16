@@ -1,8 +1,9 @@
 #include <iostream>
 #include <vector>
-#include <cstdio>
 #include <sstream>
-#include "encrypt.h"
+#include <fstream>
+
+#include "aes.h"
 
 using namespace std;
 
@@ -10,77 +11,114 @@ const size_t BLOCK_SIZE = 16;
 vector<unsigned char> stringToBytes(string str);
 void toMatrix(vector<unsigned char> bytes);
 
-int main()
-{
-    FILE* original;
-    const int bufferSize = 16;      //includes null
-    char buffer[bufferSize] = {0};  //fill with 0's
-    int i = 0;                      //generic counter
-    char c;                         //temp character
+int main(){
+    cout << "AES File Encryption/Decryption" << endl;
+    cout << "1. Encrypt a text file" << endl;
+    cout << "2. Decrypt a text file" << endl;
+    cout << "3. Exit" << endl;
 
-    original = fopen("original.txt","r");
-    if(original == NULL){
-        cout << "File not found" << endl;
+    string fileName = "";
+
+    int choice;
+    cout << "Enter your choice: ";
+    cin >> choice;
+
+    if (choice == 1)
+    {
+        cout << "Input text file:" << endl;
+        cin >> fileName;
+        
+        encryptFile(fileName);
+    }
+    else if (choice == 2){
+        cout << "Input text file:" << endl;
+        cin >> fileName;
+
+        decryptFile(fileName);
+    }
+    else if (choice == 3)
+    {
+        return 0;
+    }
+    else{
+        cout << "Input Error.";
         return 1;
     }
-
-    while(i<bufferSize){            //read file to buffer until 16 bytes or end of file, whichever comes first
-        c = getc(original);
-        if (c != EOF){
-            buffer[i] = c;
-            i++;
-        }
-        else break;
-    }
-
-    fclose(original);
-
-    cout << buffer << endl;         //print original file as a string, actual memory contains 16 bytes padded with 0's
-    cout << "characters read from file = " << i << endl;
-
-    string originalAsCharString = buffer;   //original text as a string
-
-
-    stringstream ss;
-    for(i=0; i<bufferSize; ++i)
-        ss << hex << (int)buffer[i];
-    string originalAsHexString = ss.str();  //save original text as a hex string variable
-    cout << originalAsHexString << endl;    //print original text as hex
-    
-
-// Save decrypted string to a file 
-    cout << buffer << endl;     //prints buffer which contains decrypted file
-    
-    // creates a file called decrypted and writes the buffer to it as a text string
-    FILE* decrypted;
-    decrypted = fopen("decrypted.txt","w");
-    if(decrypted == NULL){
-        cout << "File was not created" << endl;
-        return 1;
-    }
-
-    for( i=0 ; i<(bufferSize-1) ; i++) {
-        putc(buffer[i], decrypted);
-    }
-    putc(0, decrypted); //terminates with a 0
-    fclose(decrypted);
-    
     return 0;
 }
 
-//convert string to vector of char (16 bytes)
-vector<unsigned char> stringToBytes(string str){
-    vector<unsigned char> string_bytes(str.begin(), str.end());
-    size_t padding_length = BLOCK_SIZE - (string_bytes.size() % BLOCK_SIZE);
+void encryptFile(const string& fileName) {
+    ifstream inputFile(fileName);
+
+    if (!inputFile) {
+        cerr << "Cannot open file" << endl;
+    }
+
+    string line;
+    string toEncrypt;
+    string result = "";
+    unsigned char matrix[4][4];
+
+    while(getline(inputFile, line)) {
+        int start = 0;
+
+        while (start < line.length()) {
+            if (start + 16 < line.length() - 16) {
+                toEncrypt = line.substr(start, 16);
+                start += 16;
+            } else {
+                toEncrypt = line.substr(start, line.length()-start);
+                start = line.length();
+            }
+
+            toMatrix(toEncrypt, matrix);
+            result += decryptedMessage(matrix);
+        }
+    }
+}
+
+void decryptFile(const string& fileName) {
+    ifstream inputFile(fileName);
+
+    if (!inputFile) {
+        cerr << "Cannot open file" << endl;
+    }
+
+    string line;
+    string toDecrypt;
+    string result = "";
+    unsigned char matrix[4][4];
+
+    while(getline(inputFile, line)) {
+        int start = 0;
+
+        while (start < line.length()) {
+            if (start + 16 < line.length() - 16) {
+                toDecrypt = line.substr(start, 16);
+                start += 16;
+            } else {
+                toDecrypt = line.substr(start, line.length()-start);
+                start = line.length();
+            }
+
+            toMatrix(toDecrypt, matrix);
+            result += decryptedMessage(matrix);
+        }
+        cout << result << endl;
+        result = "";
+    }
+}
+
+void toMatrix(const string& str, unsigned char matrix[4][4]) {
+    vector<unsigned char> bytes(str.begin(), str.end());
+    size_t padding_length = BLOCK_SIZE - (bytes.size() % BLOCK_SIZE);
+
     //add bytes (padding) for string that is shorter than 16 bytes
     for (size_t i = 0; i < padding_length; i++)
     {
-        string_bytes.push_back(padding_length);
+        bytes.push_back(padding_length);
     }
-    return string_bytes;
-}
 
-void toMatrix(unsigned char matrix[4][4], vector<unsigned char>& bytes) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             matrix[i][j] = bytes[4*i+j];
