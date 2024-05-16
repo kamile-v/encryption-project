@@ -112,9 +112,12 @@ void decryptFile(const string& fileName) {
 }
 
 void toMatrix(const string& str, unsigned char matrix[4][4]) {
-    const unsigned char* bytes = reinterpret_cast<const unsigned char*>(str.c_str());
-    size_t padding_length = BLOCK_SIZE - (bytes.size() % BLOCK_SIZE);
+    vector<unsigned char> bytes;
+    for (char c : str) {
+        bytes.push_back(static_cast<unsigned char>(c));
+    }
 
+    size_t padding_length = BLOCK_SIZE - (bytes.size() % BLOCK_SIZE);
     //add bytes (padding) for string that is shorter than 16 bytes
     for (size_t i = 0; i < padding_length; i++)
     {
