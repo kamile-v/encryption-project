@@ -10,6 +10,8 @@ using namespace std;
 const size_t BLOCK_SIZE = 16;
 vector<unsigned char> stringToBytes(string str);
 void toMatrix(vector<unsigned char> bytes);
+void encryptFile(const string& fileName);
+void decryptFile(const string& fileName);
 
 int main(){
     cout << "AES File Encryption/Decryption" << endl;
@@ -110,7 +112,7 @@ void decryptFile(const string& fileName) {
 }
 
 void toMatrix(const string& str, unsigned char matrix[4][4]) {
-    vector<unsigned char> bytes(str.begin(), str.end());
+    const unsigned char* bytes = reinterpret_cast<const unsigned char*>(str.c_str());
     size_t padding_length = BLOCK_SIZE - (bytes.size() % BLOCK_SIZE);
 
     //add bytes (padding) for string that is shorter than 16 bytes
