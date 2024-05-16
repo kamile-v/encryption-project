@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 
+#include "encrypt.h"
+
 using namespace std;
 
 const size_t BLOCK_SIZE = 16;
@@ -23,6 +25,7 @@ vector<unsigned char> stringToBytes(string str){
     {
         string_bytes.push_back(padding_length);
     }
+    return string_bytes;
 }
 
 void toMatrix(unsigned char matrix[4][4], vector<unsigned char>& bytes) {

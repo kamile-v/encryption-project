@@ -1,13 +1,15 @@
-#ifndef ENCRYPT_H
-#define ENCRYPT_H
+#ifndef AES_H
+#define AES_H
 
 const int MATRIX_SIZE = 4;
 
 //reference tables
-extern unsigned char sBox[256];
-extern unsigned char rCon[MATRIX_SIZE][MATRIX_SIZE];
+const unsigned char sBox[256];
+const unsigned char inverseSBox[256];
+const unsigned char rCon[MATRIX_SIZE][MATRIX_SIZE];
 
-extern unsigned char cypherKey[MATRIX_SIZE][MATRIX_SIZE];
+
+const unsigned char cypherKey[MATRIX_SIZE][MATRIX_SIZE];
 
 //helper for mixColumn()
 unsigned char galoisFieldMul(unsigned char c1, unsigned char c2);
